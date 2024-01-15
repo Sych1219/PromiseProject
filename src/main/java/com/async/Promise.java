@@ -39,20 +39,6 @@ public abstract class Promise<T extends @NotNull Object> {
 
     public <T2 extends @NotNull Object> Promise<T2> then(ThrowingFunction<? super T, ? extends T2> dataTransform,
                                                          List<CatchBlock<? extends Throwable, ? extends T2>> catchBlocks) {
-//
-//        Promise<T> peek(ThrowingConsume<? super T> dataConsume, List<CatchBlockConsumer<? extends Throwable>> catchBlocks){
-//            ThrowingConsume<? super Throwable> failureConsume = ex -> {
-//                for (CatchBlockConsumer<? extends Throwable> catchBlockConsumer : catchBlocks) {
-//                    if (catchBlockConsumer.isMatchClassToCatch(ex)) {
-//                        catchBlockConsumer.accept(ex);
-//                        return;
-//                    }
-//                }
-//                throw ex;
-//            };
-//            return peek(dataConsume, failureConsume);
-//        }
-
         ThrowingFunction<? super Throwable, ? extends T2> failureTransform = ex -> {
             for (CatchBlock<? extends Throwable, ? extends T2> catchBlock : catchBlocks) {
                 if (catchBlock.isMatchClassToCatch(ex)) {
