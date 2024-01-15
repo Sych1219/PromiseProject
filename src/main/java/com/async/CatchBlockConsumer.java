@@ -1,5 +1,6 @@
 package com.async;
 
+import java.util.Optional;
 import java.util.Set;
 
 import com.async.FunctionInterface.*;
@@ -27,21 +28,23 @@ public  class CatchBlockConsumer<T extends Throwable> implements ThrowingConsume
     private final Set<Class<? extends T>> classesToCatch;
     private final ThrowingConsume<T> handler;
 
-    private CatchBlockConsumer(Set<Class<? extends T>> classesToCatch, ThrowingConsume<T> handler) {
+    public CatchBlockConsumer(Set<Class<? extends T>> classesToCatch, ThrowingConsume<T> handler) {
         this.classesToCatch = classesToCatch;
         this.handler = handler;
     }
 
-    public boolean isMatchClassToCatch(T input){
+
+    public boolean isMatchClassToCatch(Throwable input){
        return classesToCatch.stream().filter(tempClass-> tempClass.isInstance(input)).findAny().isPresent();
     }
 
     @Override
-    public Void accept(T t) throws Throwable {
-        if(!isMatchClassToCatch(t)){
+    public Void accept(Throwable t) throws Throwable {
+        Optional<Class<? extends T>> any = classesToCatch.stream().filter(tempClass -> tempClass.isInstance(t)).findAny();
+        if(!isMatchClassToCatch(t) || t == null || !any.isPresent()){
             throw t;
         }
-      return   handler.accept(t);
+      return   handler.accept((T)t);
     }
 
 //    @Override
