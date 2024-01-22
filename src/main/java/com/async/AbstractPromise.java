@@ -2,6 +2,19 @@ package com.async;
 
 public class AbstractPromise extends Promise{
 
+    //queue that save the ready promise
+    private OwningGraph owningGraph;
+    private  boolean isCompleted = false;
+    private boolean isCancelled = false;
+
+    @Override
+    void cancel(String message) {
+        if(isCompleted){
+            return;
+        }
+
+    }
+
     @Override
     Promise then(FunctionInterface.ThrowingFunction dataTransform, FunctionInterface.ThrowingFunction failureTransform) {
         return null;
@@ -22,6 +35,7 @@ public class AbstractPromise extends Promise{
         return null;
     }
 
+
     @Override
     Promise<Void> thenReturnVoid() {
         return null;
@@ -37,10 +51,7 @@ public class AbstractPromise extends Promise{
         return null;
     }
 
-    @Override
-    Promise peekFlat(FunctionInterface.ThrowingConsume dataConsume, FunctionInterface.ThrowingFunction failureConsumer) {
-        return null;
-    }
+
 
     @Override
     Promise peek(FunctionInterface.ThrowingConsume dataConsume, FunctionInterface.ThrowingConsume failureConsume) {

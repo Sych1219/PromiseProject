@@ -12,6 +12,11 @@ import java.util.function.Predicate;
 
 public abstract class Promise<T extends @NotNull Object> {
 
+    abstract void cancel(String message);
+
+    public void cancel() {
+        cancel("Promise is cancelled");
+    }
 
     abstract <T2 extends @NotNull Object> Promise<T2> then(ThrowingFunction<? super T, ? extends T2> dataTransform,
                                                            ThrowingFunction<? super Throwable, ? extends T2> failureTransform);
@@ -269,32 +274,39 @@ public abstract class Promise<T extends @NotNull Object> {
     }
 
     //peekFlat
-    Promise<T> peekFlat(ThrowingConsume<? super Promise<T>> dataConsume) {
-        return peekFlat(dataConsume, e -> {
-            throw e;
-        });
+    Promise<T> peekFlat(ThrowingFunction<? super T, ? extends Promise<?>> dataConsume) {
+        return thenFlat(data -> dataConsume.apply(data).then(unused -> data));
     }
 
-    abstract Promise<T> peekFlat(ThrowingConsume<? super Promise<T>> dataConsume, ThrowingFunction<? super Throwable, ? extends Promise<T>> failureConsumer);
-
-    Promise<T> peekFlat(ThrowingConsume<? super Promise<T>> dataConsume, CatchBlock<? extends Throwable, ? extends Promise<T>> catchBlock1) {
-        return peekFlat(dataConsume, (ThrowingFunction<? super Throwable, ? extends Promise<T>>) catchBlock1);
+    Promise<T> peekFlat(ThrowingFunction<? super T, ? extends Promise<?>> dataConsume,
+                        ThrowingFunction<? super Throwable, ? extends Promise<?>> failureConsumer) {
+        return thenFlat(data ->
+                        dataConsume.apply(data).then(unused -> data)
+                , ex -> failureConsumer.apply(ex).then(unused -> {
+                    // also can throw ex
+                    return null;
+                })
+        );
     }
 
-    Promise<T> peekFlat(ThrowingConsume<? super Promise<T>> dataConsume, CatchBlock<? extends Throwable, ? extends Promise<T>> catchBlock1, CatchBlock<? extends Throwable, ? extends Promise<T>> catchBlock2) {
-        List<CatchBlock<? extends Throwable, ? extends Promise<T>>> catchBlocks = Arrays.asList(catchBlock1, catchBlock2);
+    Promise<T> peekFlat(ThrowingFunction<? super T, ? extends Promise<?>> dataConsume, CatchBlock<? extends Throwable, ? extends Promise<?>> catchBlock1) {
+        return peekFlat(dataConsume, (ThrowingFunction<? super Throwable, ? extends Promise<?>>) catchBlock1);
+    }
+
+    Promise<T> peekFlat(ThrowingFunction<? super T, ? extends Promise<?>> dataConsume, CatchBlock<? extends Throwable, ? extends Promise<?>> catchBlock1, CatchBlock<? extends Throwable, ? extends Promise<?>> catchBlock2) {
+        List<CatchBlock<? extends Throwable, ? extends Promise<?>>> catchBlocks = Arrays.asList(catchBlock1, catchBlock2);
         return peekFlat(dataConsume, catchBlocks);
     }
 
-    Promise<T> peekFlat(ThrowingConsume<? super Promise<T>> dataConsume, CatchBlock<? extends Throwable, ? extends Promise<T>> catchBlock1, CatchBlock<? extends Throwable, ? extends Promise<T>> catchBlock2, CatchBlock<? extends Throwable, ? extends Promise<T>>... otherCatchBlocks) {
-        List<CatchBlock<? extends Throwable, ? extends Promise<T>>> catchBlocks = Arrays.asList(catchBlock1, catchBlock2);
+    Promise<T> peekFlat(ThrowingFunction<? super T, ? extends Promise<?>> dataConsume, CatchBlock<? extends Throwable, ? extends Promise<?>> catchBlock1, CatchBlock<? extends Throwable, ? extends Promise<?>> catchBlock2, CatchBlock<? extends Throwable, ? extends Promise<?>>... otherCatchBlocks) {
+        List<CatchBlock<? extends Throwable, ? extends Promise<?>>> catchBlocks = Arrays.asList(catchBlock1, catchBlock2);
         catchBlocks.addAll(Arrays.asList(otherCatchBlocks));
         return peekFlat(dataConsume, catchBlocks);
     }
 
-    Promise<T> peekFlat(ThrowingConsume<? super Promise<T>> dataConsume, List<CatchBlock<? extends Throwable, ? extends Promise<T>>> catchBlocks) {
-        ThrowingFunction<? super Throwable, ? extends Promise<T>> failureConsumer = ex -> {
-            for (CatchBlock<? extends Throwable, ? extends Promise<T>> catchBlock : catchBlocks) {
+    Promise<T> peekFlat(ThrowingFunction<? super T, ? extends Promise<?>>dataConsume, List<CatchBlock<? extends Throwable, ? extends Promise<?>>> catchBlocks) {
+        ThrowingFunction<? super Throwable, ? extends Promise<?>> failureConsumer = ex -> {
+            for (CatchBlock<? extends Throwable, ? extends Promise<?>> catchBlock : catchBlocks) {
                 if (catchBlock.isMatchClassToCatch(ex)) {
                     return catchBlock.apply(ex);
                 }
@@ -304,13 +316,13 @@ public abstract class Promise<T extends @NotNull Object> {
         return peekFlat(dataConsume, failureConsumer);
     }
 
-    <X extends Throwable> Promise<T> peekFlat(ThrowingConsume<? super Promise<T>> dataConsume, Class<X> exception, ThrowingFunction<? super Throwable, ? extends Promise<T>> failureConsumer) {
-        CatchBlock<? extends Throwable, ? extends Promise<T>> catchBlock = new CatchBlock(Set.of(exception), failureConsumer);
+    <X extends Throwable> Promise<T> peekFlat(ThrowingFunction<? super T, ? extends Promise<?>> dataConsume, Class<X> exception, ThrowingFunction<? super Throwable, ? extends Promise<?>> failureConsumer) {
+        CatchBlock<? extends Throwable, ? extends Promise<?>> catchBlock = new CatchBlock(Set.of(exception), failureConsumer);
         return peekFlat(dataConsume, catchBlock);
     }
 
-    <X extends Throwable> Promise<T> peekFlat(ThrowingConsume<? super Promise<T>> dataConsume, Class<X> exception, CatchBlock<? extends Throwable, ? extends Promise<T>> catchBlock) {
-        return peekFlat(dataConsume, exception, (ThrowingFunction<? super Throwable, ? extends Promise<T>>) catchBlock);
+    <X extends Throwable> Promise<T> peekFlat(ThrowingFunction<? super T, ? extends Promise<?>> dataConsume, Class<X> exception, CatchBlock<? extends Throwable, ? extends Promise<?>> catchBlock) {
+        return peekFlat(dataConsume, exception, (ThrowingFunction<? super Throwable, ? extends Promise<?>>) catchBlock);
     }
 
     //peekFailure
