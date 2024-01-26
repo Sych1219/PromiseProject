@@ -8,15 +8,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 
-public abstract class Promise<T extends @NotNull Object> {
+public abstract class Promise<T extends @NotNull Object> {//what is T means?
 
-    abstract void cancel(String message);
+    abstract T get();
 
-    public void cancel() {
-        cancel("Promise is cancelled");
+    abstract OwningGraph getOwningGraph();
+
+    abstract Throwable getFailure();
+    abstract boolean hasFailure();
+
+    abstract Promise<T> cancel(String message) throws PromiseException;
+
+    public Promise<T> cancel() throws PromiseException {
+        return cancel("Promise is cancelled");
     }
+
+    abstract public Promise<T> complete() throws Throwable;
 
     abstract <T2 extends @NotNull Object> Promise<T2> then(ThrowingFunction<? super T, ? extends T2> dataTransform,
                                                            ThrowingFunction<? super Throwable, ? extends T2> failureTransform);

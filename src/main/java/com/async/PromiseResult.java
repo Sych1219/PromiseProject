@@ -9,11 +9,11 @@ public class PromiseResult<T extends Object> {
         this.throwable = throwable;
     }
 
-    public PromiseResult fromFailure(Throwable throwable){
+    public static PromiseResult fromFailure(Throwable throwable){
         return new PromiseResult(null, throwable);
     }
 
-    public PromiseResult fromSuccess(T result){
+    public static <T>  PromiseResult<T>  fromSuccess(T result){
         return new PromiseResult(result, null);
     }
 
