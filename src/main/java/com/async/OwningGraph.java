@@ -1,13 +1,12 @@
 package com.async;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class OwningGraph {
     private List<AbstractPromise> promiseList = new CopyOnWriteArrayList<>();
     Queue<Promise> readyToProcessPromiseQueue = new LinkedList<>();
+    Set<Promise> pendingToProcessPromise = new HashSet<>();
 
     public void offerPromise(AbstractPromise promise) {
         readyToProcessPromiseQueue.offer(promise);
@@ -19,7 +18,7 @@ public class OwningGraph {
     }
 
     public boolean isDone() {
-        return readyToProcessPromiseQueue.isEmpty();
+        return readyToProcessPromiseQueue.isEmpty()&&pendingToProcessPromise.isEmpty();
     }
 
     public AbstractPromise getNextPromise(AbstractPromise currentPromise) {

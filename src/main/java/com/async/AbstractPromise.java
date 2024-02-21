@@ -164,6 +164,7 @@ public abstract class AbstractPromise<T extends Object> extends Promise<T> {
         this.readyToProcess = true;
         owningGraph.offerPromise(this); //not here to add promise, when promise created will add the promise to queue
         //notify downstream promise
+        owningGraph.pendingToProcessPromise.remove(this);
 
     }
 

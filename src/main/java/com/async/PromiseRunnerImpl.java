@@ -35,6 +35,12 @@ public class PromiseRunnerImpl implements PromiseRunner {
                     } catch (Throwable e) {
                         throw new RuntimeException(e);
                     }
+                }else {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
             return lastPromise.get();

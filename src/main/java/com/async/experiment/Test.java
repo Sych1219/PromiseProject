@@ -6,6 +6,8 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public class Test {
     static class Animal {
@@ -53,7 +55,29 @@ public class Test {
         return dog;
     }
 
-    public static void main(String[] args) {
+    // create a class extending Exception
+    // if custom exception is thrown, then it will be caught in the catch block
+    static class CustomException extends Exception {
+        public CustomException(String message) {
+            super(message);
+        }
+    }
+
+    static void testCatch() throws CustomException {
+        try {
+            throw new CustomException("Custom Exception");
+        }  catch (Exception e) {
+            if(e instanceof CustomException) {
+                System.out.println("Custom Exception caught");
+                throw e;
+            }
+            System.out.println("Exception caught");
+        }
+    }
+
+    public static void main(String[] args) throws CustomException {
+        testCatch();
+
         Animal animal = new Animal("animal", 1);
         Dog dog = new Dog("dog", 1, "breed");
         SubDog subDog = new SubDog("subDog", 1, "breed", "chip");
@@ -64,7 +88,7 @@ public class Test {
 //        a.add(dog);
 //        SubDog object2 = (SubDog) a.get(0);
         FunctionInterface.ThrowingFunction<? super Dog, ? extends Animal> dataTransform =
-                new FunctionInterface.ThrowingFunction< Animal, Dog>() {
+                new FunctionInterface.ThrowingFunction<Animal, Dog>() {
 
 
                     @Override

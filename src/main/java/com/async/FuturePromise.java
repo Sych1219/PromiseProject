@@ -8,20 +8,18 @@ public class FuturePromise<T extends Object> extends AbstractPromise<T> {
 
     private CompletableFuture<T> upstream;
 
-    protected FuturePromise(T result) {
-        super(result);
-        this.firstPromise = this;
-    }
+//    protected FuturePromise(T result) {
+//        super(result);
+//        this.firstPromise = this;
+//    }
 
     @Override
     PromiseResult<T> buildResultFromUpstream() {
         try {
             T t = upstream.get();
             return PromiseResult.fromSuccess(t);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException |ExecutionException e) {
             return PromiseResult.fromFailure(e);
-        } catch (ExecutionException e) {
-            return PromiseResult.fromFailure(e.getCause());
         }
 
     }
@@ -30,8 +28,8 @@ public class FuturePromise<T extends Object> extends AbstractPromise<T> {
         super(null);
         this.upstream = upstream;
         this.owningGraph = new OwningGraph();
-
-        FuturePromise<T> promise = new FuturePromise<>(null);
+        this.owningGraph.pendingToProcessPromise.add(this);
+//        FuturePromise<T> promise = new FuturePromise<>(null);
         upstream.whenComplete((result, throwable) -> {
             if (throwable != null) {
                 cancelled = true;
